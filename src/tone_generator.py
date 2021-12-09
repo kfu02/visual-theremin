@@ -13,12 +13,15 @@ class ToneGenerator():
         self.server.start()
         self.sine_wave = pyo.Sine(mul=0.01)
 
-    def play_tone(self, left_dist, right_dist):
-        #            ---------------- (0.0, 0.0)
-        #            *              .
-        #            *              .
-        #            *              .
-        # (1.0, 1.0) ---------------- 
+    # TODO: separate out the height/width calculations
+    def generate_tone(self, left_dist, right_dist):
+        """Generate and play tone from hand_tracker outputted normalized left/right_dist
+                   ---------------- (0.0, 0.0)
+                   *              .
+                   *              .
+                   *              .
+        (1.0, 1.0) ---------------- 
+        """
 
         h_min = 0.5
         h_max = 0.8
@@ -33,11 +36,13 @@ class ToneGenerator():
         height = 1 - height
         width = 1 - width
 
-        print(height, width)
+        # print(height, width)
 
         # convert height/width to amplitude/freq
-        mul = float(height * 1)
-        freq = float(width * 600)
+        mul = float(height * 0.1) + 0.001 # prevent mul from going to 0 to eliminate static click
+        freq_min = 261.626 # c3 in hz
+        freq_max = 880.000 # a5 in hz
+        freq = float(width * (freq_max - freq_min) + freq_min)
         print(mul, freq)
 
         self.sine_wave.setMul(mul)
