@@ -72,18 +72,29 @@ def main():
 
         image = prepare_img_for_drawing(image)
 
+        last_dists = None
         if hand_pose_tracker.update_success:
             # image = draw_hand_annotations(image, hand_pose_tracker.handed_landmarks)
 
+            # TODO: combine these two methods (always used in conjunction)
             left_dist = hand_pose_tracker.get_left_dist()
             right_dist = hand_pose_tracker.get_right_dist()
 
-            image = show_left_dist(image, left_dist)
-            image = show_right_dist(image, right_dist)
+            # TODO: separate out into drawing class
+            # image = show_left_dist(image, left_dist)
+            # image = show_right_dist(image, right_dist)
 
-            tone_generator.play_tone(left_dist, right_dist)
+            tone_generator.generate_tone(left_dist, right_dist)
+            last_dists = (left_dist, right_dist)
         else:
-            tone_generator.stop_tone()
+            # TODO: make caching explicit part of Driver class
+            if last_dists:
+                left_dist, right_dist = last_dists
+                # image = show_left_dist(image, left_dist)
+                # image = show_right_dist(image, right_dist)
+                tone_generator.generate_tone(left_dist, right_dist)
+            # else:
+            #     tone_generator.stop_tone()
                     
         # Flip the image horizontally for a selfie-view display.
         cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
