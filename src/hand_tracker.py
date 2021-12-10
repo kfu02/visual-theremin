@@ -1,15 +1,20 @@
 import numpy as np
 import mediapipe as mp
-mp_hands = mp.solutions.hands
+mp_holistic = mp.solutions.holistic
 
 class HandPoseTracker():
+    """Uses mp_holistic to get pose, face, and hand tracking data, then discards pose and face data.
+
+    (This provides more accurate hand detection than mp_hands alone.)
+    """
+
     def __init__(self):
-        self.hand_pose_processor = mp_hands.Hands(
+        self.processor = mp_holistic.Holistic(
             static_image_mode=False,
-            max_num_hands=2,
-            model_complexity=1, # 0 = low, 1 = high
-            min_detection_confidence=0.3,
-            min_tracking_confidence=0.3
+            # max_num_hands=2,
+            model_complexity=0, # 0 = low, 1 = med, 2 = high
+            # min_detection_confidence=0.3,
+            # min_tracking_confidence=0.3
         )
 
         self.results = None
@@ -17,30 +22,18 @@ class HandPoseTracker():
         self.handed_landmarks = [None, None] # left, right
 
     def update(self, image):
-        """Call process from mp_hands, then use results.handedness to split results.multi_hand_landmarks
-        into left and right hand_landmarks. Flag update_success if self.handed_landmarks 
-        is successfully filled in.
-        """
-        # for explanation of fields:
-        # https://github.com/google/mediapipe/blob/master/mediapipe/python/solutions/hands.py#L132
-        self.results = self.hand_pose_processor.process(image)
-        assert self.results is not None
-        
-        # find handedness, fill in left/right_hand_landmarks
-        # (0,0) in top-right (flipped), normalized coords meaning x, y = [0.0, 1.0] 
-        multi_hand_landmarks = self.results.multi_hand_landmarks
-        multi_handedness = self.results.multi_handedness
-        if multi_hand_landmarks and len(multi_hand_landmarks) == 2:
-            for i in range(2):
-                cls = multi_handedness[i].classification[0]
-                # cls.index doesn't match the order of multi_hand_landmarks
-                if cls.score > 0.5:
-                    if cls.label == "Left":
-                        self.handed_landmarks[1] = multi_hand_landmarks[i]
-                    elif cls.label == "Right":
-                        self.handed_landmarks[0] = multi_hand_landmarks[i]
+        """Call process from mp_holistic, then store L/R hand results.
 
-            self.update_success = all(hl for hl in self.handed_landmarks)
+        Set update_success flag if self.handed_landmarks is successfully filled in.
+        """
+        # google "mediapipe github" for explanation of results
+        self.results = self.processor.process(image)
+        assert self.results is not None
+
+        if self.results.left_hand_landmarks and self.results.right_hand_landmarks:
+            self.handed_landmarks[0] = self.results.left_hand_landmarks
+            self.handed_landmarks[1] = self.results.right_hand_landmarks
+            self.update_success = True
         else:
             self.update_success = False
 
