@@ -20,7 +20,6 @@ class ToneGenerator():
         osc3 = pyo.SineLoop(freq=187.5, feedback=lfo3, mul=0.3)
         self.tone = osc3
 
-    # TODO: separate out the height/width calculations
     def generate_tone(self, left_dist, right_dist):
         """Generate and play tone from hand_tracker outputted normalized left/right_dist
                    ---------------- (0.0, 0.0)
@@ -49,7 +48,7 @@ class ToneGenerator():
         freq_min = 261.626 # c3 in hz
         freq_max = 880.000 # a5 in hz
         freq = float(width * (freq_max - freq_min) + freq_min)
-        print(mul, freq)
+        # print(mul, freq)
 
         self.tone.setMul(mul)
         self.tone.setFreq(freq)

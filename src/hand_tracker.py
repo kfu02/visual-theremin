@@ -52,6 +52,9 @@ class HandPoseTracker():
             landmark_list.append([landmark.x, landmark.y, landmark.z])
         return np.asarray(landmark_list)
 
+    def get_left_right_dist(self):
+        return self.get_left_dist(), self.get_right_dist()
+
     def get_left_dist(self):
         """Find lowest point on left hand, return normalized distance from top of frame.
         """
