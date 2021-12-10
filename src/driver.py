@@ -12,8 +12,9 @@ class Driver():
         self.hand_pose_tracker = HandPoseTracker()
         self.tone_generator = ToneGenerator()
 
-        self.visuals_on = True
-        self.visualizer = Visualizer(self.visuals_on)
+        self.visuals_on = False
+        self.draw_hands, self.draw_pose, self.draw_lines = True, False, True
+        self.visualizer = Visualizer(self.visuals_on, self.draw_hands, self.draw_pose, self.draw_lines)
         self.frame_name = "Visual Theremin"
 
         self.last_dists = None
@@ -35,16 +36,14 @@ class Driver():
             image = self.visualizer.prep_img_for_drawing(image)
 
             if self.hand_pose_tracker.update_success:
-                image = self.visualizer.draw_hand_annotations(image, self.hand_pose_tracker.handed_landmarks)
 
-                left_dist, right_dist = self.hand_pose_tracker.get_left_right_dist()
-                self.last_dists = (left_dist, right_dist)
+                self.last_dists = self.hand_pose_tracker.get_left_right_dist()
 
             # last_dists is current if hand_pose_tracker updates successfully, is last successful frame otherwise
             if self.last_dists:
                 left_dist, right_dist = self.last_dists
-                image = self.visualizer.draw_hand_lines(image, left_dist, right_dist)
-                self.tone_generator.generate_tone(left_dist, right_dist)
+                image = self.visualizer.draw_annotations(image, self.hand_pose_tracker.handed_landmarks, self.last_dists, self.hand_pose_tracker.results.pose_landmarks)
+                self.tone_generator.generate_tone(self.last_dists)
                         
             # Flip the image horizontally for a selfie-view display.
             cv2.imshow(self.frame_name, cv2.flip(image, 1))
