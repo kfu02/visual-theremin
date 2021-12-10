@@ -52,6 +52,9 @@ class Driver():
             if cv2.waitKey(1) & 0xFF == ord(' '):
                 break
 
+        # stop tone
+        self.tone_generator.stop_tone()
+
         # release camera capture
         self.cap.release()
 
