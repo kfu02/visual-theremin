@@ -4,22 +4,29 @@ import numpy as np
 class ToneGenerator():
     def __init__(self):
         # Initialize a Server object
-        self.server = pyo.Server().boot()
+        self.server = pyo.Server()
 
-        # not sure why but doesn't work on airpods
-        # pyo.pa_list_devices()
-        # s.setOutputDevice(0)
+        # print all current audio devices, see which one is set to output
+        pyo.pa_list_devices()
+        print(pyo.pa_get_default_output())
+        # self.server.setOutputDevice(2)
 
+        # start server
+        self.server.boot()
         self.server.start()
-        self.sine_wave = pyo.Sine(mul=0.01)
+
+        # set tone to Sine wave (TODO: experiment with modulating existing waves saved to files)
+        lfo3 = pyo.Sine(.1).range(0, .18)
+        osc3 = pyo.SineLoop(freq=187.5, feedback=lfo3, mul=0.3)
+        self.tone = osc3
 
     # TODO: separate out the height/width calculations
     def generate_tone(self, left_dist, right_dist):
         """Generate and play tone from hand_tracker outputted normalized left/right_dist
                    ---------------- (0.0, 0.0)
-                   *              .
-                   *              .
-                   *              .
+                   |              |
+                   |              |
+                   |              |
         (1.0, 1.0) ---------------- 
         """
 
@@ -35,7 +42,6 @@ class ToneGenerator():
         # flip directions (so h = 1 is top, w = 1 is right)
         height = 1 - height
         width = 1 - width
-
         # print(height, width)
 
         # convert height/width to amplitude/freq
@@ -45,11 +51,13 @@ class ToneGenerator():
         freq = float(width * (freq_max - freq_min) + freq_min)
         print(mul, freq)
 
-        self.sine_wave.setMul(mul)
-        self.sine_wave.setFreq(freq)
-        self.sine_wave.out()
+        self.tone.setMul(mul)
+        self.tone.setFreq(freq)
+
+        self.tone.out(0) # L channel
+        self.tone.out(1) # R channel
 
     def stop_tone(self):
-        self.sine_wave.stop()
+        self.tone.stop()
 
 
