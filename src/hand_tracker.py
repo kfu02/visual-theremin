@@ -7,9 +7,9 @@ class HandPoseTracker():
         self.hand_pose_processor = mp_hands.Hands(
             static_image_mode=False,
             max_num_hands=2,
-            model_complexity=0, # 0 = low, 1 = high
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5
+            model_complexity=1, # 0 = low, 1 = high
+            min_detection_confidence=0.3,
+            min_tracking_confidence=0.3
         )
 
         self.results = None
@@ -57,9 +57,11 @@ class HandPoseTracker():
 
     def get_left_dist(self):
         """Find lowest point on left hand, return normalized distance from top of frame.
+
+        Ignore palm & thumb to be true to real theremin.
         """
         hand_coords = self.single_hand_to_coords(self.handed_landmarks[0])
-        min_y = np.amax(hand_coords[:, 1], axis=0)
+        min_y = np.amax(hand_coords[5:, 1], axis=0)
         return min_y
 
     def get_right_dist(self):
